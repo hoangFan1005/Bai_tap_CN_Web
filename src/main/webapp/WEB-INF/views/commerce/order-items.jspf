@@ -1,0 +1,23 @@
+<div class="panel table-scroll" role="region" aria-label="Sản phẩm đã đặt" tabindex="0">
+    <table class="data-table">
+        <thead><tr><th scope="col">Sản phẩm</th><th scope="col">Đơn giá</th><th scope="col">Số lượng</th><th scope="col">Thành tiền</th></tr></thead>
+        <tbody>
+            <c:forEach items="${order.items}" var="item">
+                <tr>
+                    <th scope="row">
+                        <div class="table-product"><div>
+                            <c:out value="${item.productName}" />
+                            <small><c:if test="${not empty item.sizeLabel}"><c:out value="${item.sizeLabel}" /> · </c:if><c:out value="${item.sku}" /></small>
+                        </div></div>
+                    </th>
+                    <td><fmt:formatNumber value="${item.unitPrice}" maxFractionDigits="0" />&nbsp;₫</td>
+                    <td>${item.quantity}</td>
+                    <td><fmt:formatNumber value="${item.subtotal}" maxFractionDigits="0" />&nbsp;₫</td>
+                </tr>
+            </c:forEach>
+        </tbody>
+        <tfoot>
+            <tr><th scope="row" colspan="3">Tổng tiền</th><td class="price"><fmt:formatNumber value="${order.total}" maxFractionDigits="0" />&nbsp;₫</td></tr>
+        </tfoot>
+    </table>
+</div>

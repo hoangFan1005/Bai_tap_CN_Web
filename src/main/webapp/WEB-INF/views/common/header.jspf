@@ -1,0 +1,75 @@
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setLocale value="vi_VN" />
+<c:set var="homeNav" value="${section eq 'home' or pageContext.request.servletPath eq '/WEB-INF/views/home.jsp'}" />
+<c:set var="shopNav" value="${section eq 'products' or pageContext.request.servletPath.startsWith('/WEB-INF/views/catalog/')}" />
+<c:set var="adminNav" value="${pageContext.request.servletPath.startsWith('/WEB-INF/views/admin/')}" />
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101610">
+    <title><c:if test="${not empty title}"><c:out value="${title}" /> · </c:if>Rally Sport</title>
+    <link rel="stylesheet" href="${ctx}/assets/site.css">
+    <script src="${ctx}/assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
+<header class="site-header">
+    <div class="shell header-inner">
+        <a class="brand" href="${ctx}/home" aria-label="Rally Sport – Trang chủ">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span class="brand-name">RALLY<span>SPORT</span></span>
+        </a>
+        <nav class="main-nav" aria-label="Điều hướng chính">
+            <a href="${ctx}/home" class="${homeNav ? 'is-current' : ''}" ${homeNav ? 'aria-current="page"' : ''}>Trang chủ</a>
+            <a href="${ctx}/products" class="${shopNav ? 'is-current' : ''}" ${shopNav ? 'aria-current="true"' : ''}>Sản phẩm</a>
+            <c:if test="${account.admin}">
+                <a href="${ctx}/admin/products" class="${adminNav ? 'is-current' : ''}" ${adminNav ? 'aria-current="true"' : ''}>Quản trị</a>
+            </c:if>
+        </nav>
+        <div class="header-actions">
+            <c:choose>
+                <c:when test="${empty account}">
+                    <a class="header-account" href="${ctx}/login">
+                        <span class="icon-person" aria-hidden="true"></span>
+                        <span>Đăng nhập</span>
+                    </a>
+                </c:when>
+                <c:otherwise>
+                    <details class="account-menu">
+                        <summary class="header-account">
+                            <span class="icon-person" aria-hidden="true"></span>
+                            <span class="account-name"><c:out value="${account.name}" /></span>
+                            <span class="icon-chevron" aria-hidden="true"></span>
+                        </summary>
+                        <div class="account-menu__items">
+                            <c:choose>
+                                <c:when test="${account.admin}">
+                                    <a href="${ctx}/admin/products">Quản lý sản phẩm</a>
+                                    <a href="${ctx}/admin/categories">Quản lý danh mục</a>
+                                    <a href="${ctx}/admin/orders">Quản lý đơn hàng</a>
+                                </c:when>
+                                <c:otherwise><a href="${ctx}/orders">Đơn hàng của tôi</a></c:otherwise>
+                            </c:choose>
+                            <form method="post" action="${ctx}/logout">
+                                <input type="hidden" name="_csrf" value="<c:out value='${csrf}' />">
+                                <button type="submit">Đăng xuất</button>
+                            </form>
+                        </div>
+                    </details>
+                </c:otherwise>
+            </c:choose>
+            <c:if test="${not account.admin}">
+                <a class="header-cart" href="${ctx}/cart">
+                    <span class="icon-bag" aria-hidden="true"></span>
+                    <span class="header-cart__label">Giỏ hàng</span>
+                    <span class="header-cart__count"><c:out value="${cartCount}" default="0" /> <span class="sr-only">sản phẩm</span></span>
+                </a>
+            </c:if>
+        </div>
+    </div>
+</header>
+<main id="main-content" class="site-main" tabindex="-1">

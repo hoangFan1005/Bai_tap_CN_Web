@@ -1,0 +1,9 @@
+<h2 id="shipping-title">Thông tin giao hàng</h2>
+<p><span class="status-pill status-pill--${order.status.cssName}">${order.status.label}</span></p>
+<dl class="order-meta">
+    <div><dt>Ngày đặt</dt><dd><fmt:formatDate value="${order.createdAt}" pattern="dd/MM/yyyy HH:mm" timeZone="Asia/Ho_Chi_Minh" /></dd></div>
+    <div><dt>Người nhận</dt><dd><c:out value="${order.recipientName}" /></dd></div>
+    <div><dt>Điện thoại</dt><dd><c:out value="${order.phone}" /></dd></div>
+    <div><dt>Địa chỉ</dt><dd><c:out value="${order.address}" /></dd></div>
+    <div><dt>Thanh toán</dt><dd>Khi nhận hàng (COD)</dd></div>
+</dl>

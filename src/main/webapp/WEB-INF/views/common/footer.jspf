@@ -1,0 +1,23 @@
+</main>
+<footer class="site-footer">
+    <div class="shell footer-inner">
+        <div>
+            <a class="brand" href="${ctx}/home" aria-label="Rally Sport – Trang chủ">
+                <span class="brand-mark" aria-hidden="true"></span>
+                <span class="brand-name">RALLY<span>SPORT</span></span>
+            </a>
+            <p>Dụng cụ cầu lông</p>
+        </div>
+        <nav aria-label="Điều hướng cuối trang">
+            <a href="${ctx}/products">Sản phẩm</a>
+            <c:if test="${not account.admin}"><a href="${ctx}/cart">Giỏ hàng</a></c:if>
+            <c:choose>
+                <c:when test="${empty account}"><a href="${ctx}/register">Tạo tài khoản</a></c:when>
+                <c:when test="${account.admin}"><a href="${ctx}/admin/products">Quản trị</a></c:when>
+                <c:otherwise><a href="${ctx}/orders">Đơn hàng của tôi</a></c:otherwise>
+            </c:choose>
+        </nav>
+    </div>
+</footer>
+</body>
+</html>
