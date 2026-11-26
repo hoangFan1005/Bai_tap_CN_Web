@@ -26,7 +26,7 @@ UPDATE users SET role = 'ADMIN' WHERE email = 'quantri@example.test';
 
 ## Kịch bản trình bày
 
-1. **Guest** mở trang chủ, tìm “quấn cán”, lọc danh mục và xem chi tiết.
+1. **Guest** mở trang chủ, tìm “cuốn cán” hoặc “Yonex”, lọc danh mục và xem chi tiết.
 2. **User** đăng nhập, chọn một size áo, thêm vào giỏ và chỉnh số lượng. Điền thông tin mẫu rồi đặt COD. Xem đơn mới ở trạng thái **Chờ xác nhận**.
 3. **Admin** vào trang quản trị, tạo một sản phẩm, tìm sản phẩm đó, sửa giá rồi xóa. Chọn đơn vừa đặt và cập nhật **Đã xác nhận → Đang giao → Hoàn tất**.
 4. **User** mở lại lịch sử đơn để quan sát trạng thái mới. Để minh họa hoàn tồn kho, có thể tạo đơn khác và hủy khi còn chờ xác nhận.
@@ -37,4 +37,4 @@ UPDATE users SET role = 'ADMIN' WHERE email = 'quantri@example.test';
 - `database/setup.sql` chứa bảng tài khoản, danh mục, sản phẩm, biến thể, đơn và chi tiết đơn. Tổng tiền lưu theo VND. Đơn COD trừ tồn kho khi được tạo và giữ nguyên đơn giá, tên hàng, SKU, size đã mua.
 - `mvn test` chạy các bài kiểm thử nghiệp vụ. `mvn -Pintegration clean verify` đóng gói WAR và chạy HTTP trên Tomcat nhúng với một CSDL thử nghiệm riêng. Có thể đặt `RALLY_TEST_DB_SERVER`, `RALLY_TEST_DB_USER`, `RALLY_TEST_DB_PASSWORD` cho kết nối thử nghiệm. `RALLY_TEST_DB_SERVER` là URL JDBC tới máy chủ, kết thúc bằng `/`, ví dụ `jdbc:mysql://127.0.0.1:3306/`. Tài khoản thử nghiệm cần quyền tạo và xóa CSDL tạm.
 
-Các ảnh WebP trong `src/main/webapp/assets/images` là ảnh minh họa do ImageGen tích hợp tạo. Ảnh bìa mô tả vận động viên cầu lông Việt Nam trên sân trong nhà tông xanh đậm. Ảnh sản phẩm là ảnh studio của vợt, cầu, áo, lưới và cuộn quấn cán.
+Dữ liệu danh mục, sản phẩm, biến thể và ảnh sản phẩm thực tế (`p-*.webp`) trong `database/setup.sql` và `src/main/webapp/assets/images` được tổng hợp từ `https://votcaulongshop.vn/` phục vụ mục đích học tập. Ảnh bìa `hero.webp` và các ảnh mặc định giữ làm ảnh dự phòng.

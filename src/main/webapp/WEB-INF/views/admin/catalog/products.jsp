@@ -17,7 +17,7 @@
     <form class="panel catalog-filters" action="${ctx}/admin/products" method="get" role="search">
         <label class="field">
             <span>Tìm theo tên</span>
-            <input type="search" name="q" value="<c:out value='${query}'/>" placeholder="Vợt Rally Aero 88">
+            <input type="search" name="q" value="<c:out value='${query}'/>" placeholder="Vợt Yonex Astrox">
         </label>
         <label class="field">
             <span>Danh mục</span>

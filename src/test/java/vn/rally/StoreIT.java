@@ -102,9 +102,9 @@ class StoreIT {
         assertEquals(200, guest.get("/").statusCode());
         assertTrue(home.body().contains("Rally"), home.body());
         assertTrue(home.body().contains("Sẵn sàng"), home.body());
-        var search = guest.get("/products?q=" + encode("quấn cán"));
+        var search = guest.get("/products?q=" + encode("cuốn cán"));
         assertEquals(200, search.statusCode(), search.body());
-        assertTrue(search.body().contains("Quấn cán Rally Grip"), search.body());
+        assertTrue(search.body().contains("Cuốn Cán Vải Apavi Ag-110"), search.body());
         assertTrue(search.body().contains("Sản phẩm cầu lông"), search.body());
         assertFalse(search.body().contains("href=\"" + CONTEXT + "/product?id=1\""), search.body());
         assertLocation("/login", guest.get("/checkout"));
@@ -143,11 +143,11 @@ class StoreIT {
         var adminSearch = admin.get("/admin/products?q=" + encode("Alpha"));
         assertEquals(200, adminSearch.statusCode(), adminSearch.body());
         assertTrue(adminSearch.body().contains("Vợt kiểm thử Alpha"), adminSearch.body());
-        assertFalse(adminSearch.body().contains("Quấn cán Rally Grip"), adminSearch.body());
+        assertFalse(adminSearch.body().contains("Cuốn Cán Vải Apavi Ag-110"), adminSearch.body());
         assertTrue(adminSearch.body().contains("href=\"" + CONTEXT + "/admin/orders\""), adminSearch.body());
         var categoryFilter = admin.get("/admin/products?category=5");
         assertEquals(200, categoryFilter.statusCode(), categoryFilter.body());
-        assertTrue(categoryFilter.body().contains("Quấn cán Rally Grip"), categoryFilter.body());
+        assertTrue(categoryFilter.body().contains("Cuốn Cán Vải Apavi Ag-110"), categoryFilter.body());
         assertFalse(categoryFilter.body().contains("Vợt kiểm thử Alpha"), categoryFilter.body());
         var categoriesPage = admin.get("/admin/categories");
         assertEquals(200, categoriesPage.statusCode(), categoriesPage.body());
@@ -173,12 +173,12 @@ class StoreIT {
     @Test
     void checkoutIsIdempotentAndKeepsOrderHistoryAfterArchive() throws Exception {
         Browser user = customer("buyer@example.test");
-        var added = user.postForm("/cart", "/product?id=3",
-                Map.of("action", "add", "variantId", "4", "quantity", "2"));
+        var added = user.postForm("/cart", "/product?id=19",
+                Map.of("action", "add", "variantId", "58", "quantity", "2"));
         assertLocation("/cart", added);
         var cart = user.get("/cart");
         assertEquals(200, cart.statusCode(), cart.body());
-        assertTrue(cart.body().contains("Áo cầu lông Rally Serve"), cart.body());
+        assertTrue(cart.body().contains("Áo cầu lông Lining 9002B"), cart.body());
         Map<String, String> order = checkoutForm(user);
         var placed = user.post("/checkout", order);
         assertLocation("/order", placed);
@@ -189,32 +189,32 @@ class StoreIT {
         var duplicate = user.post("/checkout", order);
         assertLocation("/order", duplicate);
         assertEquals(orderUrl, URI.create(duplicate.headers().firstValue("Location").orElseThrow()).getRawQuery());
-        assertEquals("690000", scalar("SELECT total FROM orders WHERE id=" + id));
-        assertEquals("16", scalar("SELECT stock FROM product_variants WHERE id=4"));
-        assertEquals("M", scalar("SELECT size_label FROM order_items WHERE order_id=" + id));
+        assertEquals("360000", scalar("SELECT total FROM orders WHERE id=" + id));
+        assertEquals("16", scalar("SELECT stock FROM product_variants WHERE id=58"));
+        assertEquals("HỒNG / L", scalar("SELECT size_label FROM order_items WHERE order_id=" + id));
         assertEquals(200, user.get("/order?id=" + id).statusCode());
         assertEquals(200, user.get("/orders").statusCode());
         assertEquals(404, customer("another@example.test").get("/order?id=" + id).statusCode());
 
         Browser admin = admin("orders-admin@example.test");
-        execute("UPDATE products SET name='Áo cập nhật', price=475000 WHERE id=3");
-        var archived = admin.postForm("/admin/products/delete", "/admin/products", Map.of("id", "3"));
+        execute("UPDATE products SET name='Áo cập nhật', price=475000 WHERE id=19");
+        var archived = admin.postForm("/admin/products/delete", "/admin/products", Map.of("id", "19"));
         assertEquals(302, archived.statusCode(), archived.body());
-        assertEquals("0", scalar("SELECT active FROM products WHERE id=3"));
-        assertEquals(404, new Browser().get("/product?id=3").statusCode());
+        assertEquals("0", scalar("SELECT active FROM products WHERE id=19"));
+        assertEquals(404, new Browser().get("/product?id=19").statusCode());
         var history = user.get("/order?id=" + id);
-        assertTrue(history.body().contains("Áo cầu lông Rally Serve"), history.body());
+        assertTrue(history.body().contains("Áo cầu lông Lining 9002B"), history.body());
         assertFalse(history.body().contains("Áo cập nhật"), history.body());
 
         var cancelled = admin.postForm("/admin/orders", "/admin/orders?id=" + id,
                 Map.of("id", id, "status", "CANCELLED"));
         assertLocation("/admin/orders", cancelled);
         assertEquals("CANCELLED", scalar("SELECT status FROM orders WHERE id=" + id));
-        assertEquals("18", scalar("SELECT stock FROM product_variants WHERE id=4"));
+        assertEquals("18", scalar("SELECT stock FROM product_variants WHERE id=58"));
         var invalidTransition = admin.postForm("/admin/orders", "/admin/orders",
                 Map.of("id", id, "status", "CANCELLED"));
         assertEquals(409, invalidTransition.statusCode(), invalidTransition.body());
-        assertEquals("18", scalar("SELECT stock FROM product_variants WHERE id=4"));
+        assertEquals("18", scalar("SELECT stock FROM product_variants WHERE id=58"));
     }
 
     @Test
@@ -222,18 +222,18 @@ class StoreIT {
         Browser user = customer("stock@example.test");
         assertLocation("/cart", user.postForm("/cart", "/product?id=2",
                 Map.of("action", "add", "variantId", "2", "quantity", "2")));
-        assertLocation("/cart", user.postForm("/cart", "/product?id=5",
-                Map.of("action", "add", "variantId", "8", "quantity", "3")));
+        assertLocation("/cart", user.postForm("/cart", "/product?id=33",
+                Map.of("action", "add", "variantId", "105", "quantity", "3")));
         Map<String, String> order = checkoutForm(user);
-        execute("UPDATE product_variants SET stock=2 WHERE id=8");
+        execute("UPDATE product_variants SET stock=2 WHERE id=105");
         try {
             var response = user.post("/checkout", order);
             assertEquals(409, response.statusCode(), response.body());
-            assertEquals("40", scalar("SELECT stock FROM product_variants WHERE id=2"));
-            assertEquals("2", scalar("SELECT stock FROM product_variants WHERE id=8"));
+            assertEquals("393", scalar("SELECT stock FROM product_variants WHERE id=2"));
+            assertEquals("2", scalar("SELECT stock FROM product_variants WHERE id=105"));
             assertEquals("0", scalar("SELECT COUNT(*) FROM orders WHERE checkout_key='" + order.get("checkoutKey") + "'"));
         } finally {
-            execute("UPDATE product_variants SET stock=32 WHERE id=8");
+            execute("UPDATE product_variants SET stock=40 WHERE id=105");
         }
     }
 
@@ -241,9 +241,9 @@ class StoreIT {
     void twoBuyersCannotBothPlaceAnOrderForTheLastUnits() throws Exception {
         Browser first = customer("race-first@example.test");
         Browser second = customer("race-second@example.test");
-        Map<String, String> items = Map.of("action", "add", "variantId", "11", "quantity", "12");
-        assertLocation("/cart", first.postForm("/cart", "/product?id=8", items));
-        assertLocation("/cart", second.postForm("/cart", "/product?id=8", items));
+        Map<String, String> items = Map.of("action", "add", "variantId", "24", "quantity", "12");
+        assertLocation("/cart", first.postForm("/cart", "/product?id=13", items));
+        assertLocation("/cart", second.postForm("/cart", "/product?id=13", items));
         var firstOrder = checkoutForm(first);
         var secondOrder = checkoutForm(second);
 
@@ -255,8 +255,8 @@ class StoreIT {
             int codeB = b.get(25, TimeUnit.SECONDS);
             assertTrue((codeA == 302 && codeB == 409) || (codeA == 409 && codeB == 302),
                     "Expected exactly one successful checkout but got " + codeA + " and " + codeB);
-            assertEquals("0", scalar("SELECT stock FROM product_variants WHERE id=11"));
-            assertEquals("1", scalar("SELECT COUNT(*) FROM order_items WHERE variant_id=11"));
+            assertEquals("0", scalar("SELECT stock FROM product_variants WHERE id=24"));
+            assertEquals("1", scalar("SELECT COUNT(*) FROM order_items WHERE variant_id=24"));
         } finally {
             requests.shutdownNow();
         }
@@ -265,12 +265,12 @@ class StoreIT {
     @Test
     void customerCancelsPendingOrderAndRestoresStockButCannotCancelConfirmedOrForeignOrder() throws Exception {
         Browser buyer = customer("cancel-buyer@example.test");
-        assertLocation("/cart", buyer.postForm("/cart", "/product?id=6",
-                Map.of("action", "add", "variantId", "9", "quantity", "2")));
+        assertLocation("/cart", buyer.postForm("/cart", "/product?id=21",
+                Map.of("action", "add", "variantId", "68", "quantity", "2")));
         Map<String, String> firstOrder = checkoutForm(buyer);
         assertLocation("/order", buyer.post("/checkout", firstOrder));
         String firstId = scalar("SELECT id FROM orders WHERE checkout_key='" + firstOrder.get("checkoutKey") + "'");
-        assertEquals("9", scalar("SELECT stock FROM product_variants WHERE id=9"));
+        assertEquals("9", scalar("SELECT stock FROM product_variants WHERE id=68"));
         var pendingPage = buyer.get("/order?id=" + firstId);
         assertEquals(200, pendingPage.statusCode(), pendingPage.body());
         assertTrue(pendingPage.body().contains("Hủy đơn hàng"), pendingPage.body());
@@ -279,23 +279,23 @@ class StoreIT {
         var foreignCancel = stranger.postForm("/order", "/orders", Map.of("action", "cancel", "id", firstId));
         assertEquals(404, foreignCancel.statusCode(), foreignCancel.body());
         assertEquals("PENDING", scalar("SELECT status FROM orders WHERE id=" + firstId));
-        assertEquals("9", scalar("SELECT stock FROM product_variants WHERE id=9"));
+        assertEquals("9", scalar("SELECT stock FROM product_variants WHERE id=68"));
 
         var cancelled = buyer.postForm("/order", "/order?id=" + firstId, Map.of("action", "cancel", "id", firstId));
         assertLocation("/order", cancelled);
         assertEquals("CANCELLED", scalar("SELECT status FROM orders WHERE id=" + firstId));
-        assertEquals("11", scalar("SELECT stock FROM product_variants WHERE id=9"));
+        assertEquals("11", scalar("SELECT stock FROM product_variants WHERE id=68"));
 
         var duplicateCancel = buyer.postForm("/order", "/orders", Map.of("action", "cancel", "id", firstId));
         assertEquals(409, duplicateCancel.statusCode(), duplicateCancel.body());
-        assertEquals("11", scalar("SELECT stock FROM product_variants WHERE id=9"));
+        assertEquals("11", scalar("SELECT stock FROM product_variants WHERE id=68"));
 
-        assertLocation("/cart", buyer.postForm("/cart", "/product?id=7",
-                Map.of("action", "add", "variantId", "10", "quantity", "1")));
+        assertLocation("/cart", buyer.postForm("/cart", "/product?id=37",
+                Map.of("action", "add", "variantId", "122", "quantity", "1")));
         Map<String, String> secondOrder = checkoutForm(buyer);
         assertLocation("/order", buyer.post("/checkout", secondOrder));
         String secondId = scalar("SELECT id FROM orders WHERE checkout_key='" + secondOrder.get("checkoutKey") + "'");
-        assertEquals("23", scalar("SELECT stock FROM product_variants WHERE id=10"));
+        assertEquals("23", scalar("SELECT stock FROM product_variants WHERE id=122"));
 
         Browser admin = admin("cancel-admin@example.test");
         assertLocation("/admin/orders", admin.postForm("/admin/orders", "/admin/orders?id=" + secondId,
@@ -307,7 +307,7 @@ class StoreIT {
         var lateCancel = buyer.postForm("/order", "/orders", Map.of("action", "cancel", "id", secondId));
         assertEquals(409, lateCancel.statusCode(), lateCancel.body());
         assertEquals("CONFIRMED", scalar("SELECT status FROM orders WHERE id=" + secondId));
-        assertEquals("23", scalar("SELECT stock FROM product_variants WHERE id=10"));
+        assertEquals("23", scalar("SELECT stock FROM product_variants WHERE id=122"));
     }
 
     private static Map<String, String> checkoutForm(Browser browser) throws Exception {
