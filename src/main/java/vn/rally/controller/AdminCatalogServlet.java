@@ -22,8 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@WebServlet({"/admin/products/*", "/admin/categories/*"})
+@WebServlet({"/admin", "/admin/products/*", "/admin/categories/*"})
 public class AdminCatalogServlet extends HttpServlet {
+    private static final String ADMIN = "/admin";
     private static final String PRODUCTS = "/admin/products";
     private static final String CATEGORIES = "/admin/categories";
     private static final VariantFields EMPTY_VARIANT = new VariantFields("", "", "", "", "", false);
@@ -32,6 +33,10 @@ public class AdminCatalogServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (ADMIN.equals(request.getServletPath())) {
+            Web.redirect(request, response, PRODUCTS);
+            return;
+        }
         boolean categories = CATEGORIES.equals(request.getServletPath());
         try {
             switch (path(request)) {
@@ -71,6 +76,10 @@ public class AdminCatalogServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (ADMIN.equals(request.getServletPath())) {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
         String action = path(request);
         if (!"/save".equals(action) && !"/delete".equals(action)) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -103,8 +112,13 @@ public class AdminCatalogServlet extends HttpServlet {
 
     private void showProducts(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
+        String query = request.getParameter("q");
+        Long category = CatalogServlet.positiveId(request.getParameter("category"));
         request.setAttribute("title", "Quản lý sản phẩm");
-        request.setAttribute("products", catalog.adminProducts());
+        request.setAttribute("query", query == null ? "" : query.strip());
+        request.setAttribute("selectedCategory", category);
+        request.setAttribute("categories", catalog.categories());
+        request.setAttribute("products", catalog.adminProducts(query, category));
         String status = request.getParameter("status");
         if (status != null) {
             request.setAttribute("notice", switch (status) {

@@ -100,6 +100,16 @@ public final class CommerceBO {
         return orders.findOrder(orderId, userId);
     }
 
+    public boolean cancelCustomerOrder(long userId, long orderId) throws CommerceException, SQLException {
+        StatusChange result = orders.cancelCustomerOrder(orderId, userId);
+        return switch (result) {
+            case UPDATED -> true;
+            case NOT_FOUND -> false;
+            case INVALID -> throw new CommerceException("Chỉ có thể hủy đơn hàng khi đang chờ xác nhận.", true);
+            case RESTOCK_LIMIT -> throw new CommerceException("Không thể hoàn số lượng vào kho cho đơn hàng này.", true);
+        };
+    }
+
     public List<Order> adminOrders() throws SQLException {
         return orders.listOrders(null);
     }

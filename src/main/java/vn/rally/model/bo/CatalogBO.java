@@ -29,8 +29,8 @@ public class CatalogBO {
         return catalog.listProducts(clean(query), categoryId, false);
     }
 
-    public List<Product> adminProducts() throws SQLException {
-        return catalog.listProducts("", null, true);
+    public List<Product> adminProducts(String query, Long categoryId) throws SQLException {
+        return catalog.listProducts(clean(query), categoryId, true);
     }
 
     public Product product(long id, boolean includeInactive) throws SQLException {

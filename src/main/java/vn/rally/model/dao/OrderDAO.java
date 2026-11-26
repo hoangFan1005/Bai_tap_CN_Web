@@ -285,14 +285,25 @@ public final class OrderDAO {
     }
 
     public StatusChange changeStatus(long orderId, OrderStatus next) throws SQLException {
+        return transitionStatus(orderId, null, next);
+    }
+
+    public StatusChange cancelCustomerOrder(long orderId, long userId) throws SQLException {
+        return transitionStatus(orderId, userId, OrderStatus.CANCELLED);
+    }
+
+    private StatusChange transitionStatus(long orderId, Long customerId, OrderStatus next) throws SQLException {
         try (Connection db = Database.open()) {
             db.setAutoCommit(false);
             try {
-                OrderStatus previous = lockStatus(db, orderId);
+                OrderStatus previous = lockStatus(db, orderId, customerId);
+                boolean allowed = previous != null && (customerId == null
+                        ? previous.getNextStatuses().contains(next)
+                        : previous == OrderStatus.PENDING && next == OrderStatus.CANCELLED);
                 StatusChange result;
                 if (previous == null) {
                     result = StatusChange.NOT_FOUND;
-                } else if (!previous.getNextStatuses().contains(next)) {
+                } else if (!allowed) {
                     result = StatusChange.INVALID;
                 } else if (next == OrderStatus.CANCELLED && !restock(db, orderId)) {
                     db.rollback();
@@ -314,9 +325,15 @@ public final class OrderDAO {
         }
     }
 
-    private static OrderStatus lockStatus(Connection db, long orderId) throws SQLException {
-        try (PreparedStatement query = db.prepareStatement("SELECT status FROM orders WHERE id = ? FOR UPDATE")) {
+    private static OrderStatus lockStatus(Connection db, long orderId, Long customerId) throws SQLException {
+        String sql = customerId == null
+                ? "SELECT status FROM orders WHERE id = ? FOR UPDATE"
+                : "SELECT status FROM orders WHERE id = ? AND user_id = ? FOR UPDATE";
+        try (PreparedStatement query = db.prepareStatement(sql)) {
             query.setLong(1, orderId);
+            if (customerId != null) {
+                query.setLong(2, customerId);
+            }
             try (ResultSet rows = query.executeQuery()) {
                 return rows.next() ? OrderStatus.valueOf(rows.getString("status")) : null;
             }

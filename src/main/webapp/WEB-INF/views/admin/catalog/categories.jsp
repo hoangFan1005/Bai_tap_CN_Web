@@ -3,10 +3,14 @@
     <div class="page-heading">
         <h1>Quản lý danh mục</h1>
         <div class="inline-actions">
-            <a class="button button--secondary" href="${ctx}/admin/products">Quản lý sản phẩm</a>
             <a class="button button--primary" href="${ctx}/admin/categories/new">Thêm danh mục</a>
         </div>
     </div>
+    <nav class="admin-nav" aria-label="Quản trị cửa hàng">
+        <a href="${ctx}/admin/products">Sản phẩm</a>
+        <a href="${ctx}/admin/categories" aria-current="page">Danh mục</a>
+        <a href="${ctx}/admin/orders">Đơn hàng</a>
+    </nav>
     <c:if test="${not empty notice}">
         <p class="notice notice--success" role="status"><c:out value="${notice}"/></p>
     </c:if>

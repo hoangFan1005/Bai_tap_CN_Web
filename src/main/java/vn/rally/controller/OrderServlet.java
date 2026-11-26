@@ -25,19 +25,60 @@ public final class OrderServlet extends HttpServlet {
                 Web.view(request, response, "commerce/orders");
                 return;
             }
-            Order order = commerce.customerOrder(userId, CommerceBO.parseId(request.getParameter("id")));
-            if (order == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                return;
-            }
-            request.setAttribute("title", "Chi tiết đơn hàng #" + order.getId());
-            request.setAttribute("order", order);
-            request.setAttribute("placed", "1".equals(request.getParameter("placed")));
-            Web.view(request, response, "commerce/order");
+            showDetail(request, response, userId, CommerceBO.parseId(request.getParameter("id")));
         } catch (CommerceException invalid) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         } catch (SQLException e) {
             throw new ServletException("Could not show the customer's orders", e);
         }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if (!"/order".equals(request.getServletPath())) {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
+        if (!"cancel".equals(request.getParameter("action"))) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        long userId = Web.user(request).getId();
+        long orderId;
+        try {
+            orderId = CommerceBO.parseId(request.getParameter("id"));
+        } catch (CommerceException invalid) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        try {
+            try {
+                if (commerce.cancelCustomerOrder(userId, orderId)) {
+                    Web.redirect(request, response, "/order?id=" + orderId + "&cancelled=1");
+                    return;
+                }
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            } catch (CommerceException invalid) {
+                response.setStatus(invalid.isConflict() ? HttpServletResponse.SC_CONFLICT : HttpServletResponse.SC_BAD_REQUEST);
+                request.setAttribute("error", invalid.getMessage());
+                showDetail(request, response, userId, orderId);
+            }
+        } catch (SQLException e) {
+            throw new ServletException("Could not cancel the customer's order", e);
+        }
+    }
+
+    private void showDetail(HttpServletRequest request, HttpServletResponse response, long userId, long orderId)
+            throws IOException, SQLException, ServletException {
+        Order order = commerce.customerOrder(userId, orderId);
+        if (order == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        request.setAttribute("title", "Chi tiết đơn hàng #" + order.getId());
+        request.setAttribute("order", order);
+        request.setAttribute("placed", "1".equals(request.getParameter("placed")));
+        request.setAttribute("cancelled", "1".equals(request.getParameter("cancelled")));
+        Web.view(request, response, "commerce/order");
     }
 }
